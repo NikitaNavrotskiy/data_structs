@@ -1,37 +1,49 @@
 
 typedef struct node{
     void * data;
-    struct node * next;
-    struct node * prev;
+    struct node * __next;
+    struct node * __prev;
 }node;
 
 typedef struct list{
-    node * head;
+    node * __head;
+    node * __tail;
 }list;
 
 
 
+// private
 
-node * create_node(void * data, node * next, node * prev);
+node * __create_node(void * data, node * next, node * prev);
 
-void remove_node(node * nd);
+void __remove_node(node * nd);
 
 
 
+// public
 
 
 list * create_list();
 
-void add_end(list * lst, void * data);
+void push_back(list * lst, void * data);
 
-void add_start(list * lst, void * data);
+void push_front(list * lst, void * data);
 
-void add_after(list * lst, node * nd, void * data);
+void pop_front(list * lst);
 
-void print(list * lst);
+void pop_back(list * lst);
 
-void pop(list * lst, node * nd);
+node * front(list * lst);
 
-long count(list * lst);
+node * back(list * lst);
+
+int count_list(list * lst);
+
+void print_d(list * lst);
+
+void printr_d(list * lst);
 
 void remove_list(list * lst);
+
+void clear_list(list * lst);
+

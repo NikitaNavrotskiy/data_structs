@@ -1,198 +1,223 @@
-#include "list.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "list.h"
+#include "unistd.h"
 
 
-node * create_node(void * data, node * next, node * prev){
+node * __create_node(void * data, node * next, node * prev)
+{
     node * tmp = (node *)malloc(sizeof(node));
 
     if(tmp == NULL)
         return NULL;
 
     tmp->data = data;
-    tmp->next = next;
-    tmp->prev = prev;
+    tmp->__next = next;
+    tmp->__prev = prev;
 
     return tmp;
 }
 
-void remove_node(node * nd){
+
+void __remove_node(node * nd)
+{
     free(nd);
 }
 
 
-list * create_list(){
-    list * tmp = (list *)malloc(sizeof(list));
 
-    if(tmp == NULL){
-        return NULL;
-    }
+
+
+list * create_list()
+{
+    list * tmp = (list *)malloc(sizeof(list));
+    tmp->__head = NULL;
+    tmp->__tail = NULL;
 
     return tmp;
 }
 
 
-void remove_list(list * lst){
-    node * cur = lst->head;
-    switch (count(lst))
+void push_back(list * lst, void * data)
+{
+    node * tmp = lst->__tail;
+
+    lst->__tail = __create_node(data, NULL, tmp);
+
+    if(lst->__head == NULL)
+        lst->__head = lst->__tail;
+    else
+        tmp->__next = lst->__tail;
+}
+
+
+void push_front(list * lst, void * data)
+{
+    node * tmp = lst->__head;
+
+    lst->__head = __create_node(data, tmp, NULL);
+    
+    if(lst->__tail == NULL)
+        lst->__tail = lst->__head;
+    else
+        tmp->__prev = lst->__head;
+}
+
+
+
+void pop_front(list * lst)
+{
+    if(lst->__head == NULL)
+        return;
+
+    node * cur = lst->__head;
+
+    lst->__head = cur->__next;
+
+    if(lst->__head!=NULL)
+        lst->__head->__prev = NULL;
+    else
+        lst->__tail = NULL;
+
+    __remove_node(cur);
+}
+
+
+void pop_back(list * lst)
+{
+    if(lst->__tail == NULL)
+        return;
+
+    node * cur = lst->__tail;
+
+    lst->__tail = cur->__prev;
+
+    if(lst->__tail!=NULL)
+        lst->__tail->__next = NULL;
+    else
+        lst->__head = NULL;
+
+    __remove_node(cur);
+}
+
+
+void print_d(list * lst)
+{
+    node * cur = lst->__head;
+    while(cur!=NULL)
     {
-    case 2:
-        remove_node(cur->next);
-        remove_node(cur);
-        free(lst);
-        return;
-    case 1:
-        remove_node(cur);
-        free(lst);
-        return;
-    case 0:
-        free(lst);
-        return;
-    default:
-        break;
+        printf("%d ", *(int *)cur->data);
+        cur = cur->__next;
+    }
+    printf("\n");
+}
+
+
+void printr_d(list * lst)
+{
+    node * cur = lst->__tail;
+    while(cur!=NULL)
+    {
+        printf("%d ", *(int *)cur->data);
+        cur = cur->__prev;
+    }
+    printf("\n");
+}
+
+
+node * front(list * lst)
+{
+    node * cur = lst->__head;
+    return  cur;
+}
+
+
+node * back(list * lst)
+{
+    node * cur = lst->__tail;
+    return  cur;
+}
+
+
+int count_list(list * lst)
+{
+    int count = 0;
+    node * cur = lst->__tail;
+    while(cur!=NULL)
+    {
+        count++;
+        cur = cur->__prev;
     }
 
-    while(cur->next->next != NULL)
-        cur = cur->next;
-    
-    do{
-        remove_node(cur->next);
-        cur = cur->prev;
-    }while(cur!=lst->head);
+    return count;
+}
 
-    remove_node(cur);
+
+void remove_list(list * lst)
+{
+    if(lst->__head != NULL)
+    {
+        node * cur = lst->__head, * cur2 = lst->__head->__next;
+        while(cur2!=NULL)
+        {
+            __remove_node(cur);
+            cur = cur2;
+            cur2 = cur2->__next;
+        }
+
+        __remove_node(cur);
+    }
+
     free(lst);
 }
 
 
-void add_end(list * lst, void * data){
-    node * tmp = create_node(data, NULL, NULL);
-    if(lst->head == NULL){
-        lst->head = tmp;
-        return;
-    }
-
-    node * cur = lst->head;
-    while(cur->next!=NULL)
-        cur = cur->next;
-
-    cur->next = tmp;
-    tmp->prev = cur;
-    return;
-}
-
-
-void add_start(list * lst, void * data){
-    node * tmp = create_node(data, NULL, NULL);
-    tmp->next = lst->head;
-    lst->head->prev = tmp;
-    lst->head = tmp;
-}
-
-
-void print(list * lst){
-    if(lst->head == NULL)
-        return;
-    node * cur = lst->head;
-    for(; cur!=NULL; cur = cur->next)
-        printf("%d ", *(int*)cur->data);
-    
-    printf("\n");
-}  
-
-
-void pop(list * lst, node * nd){
-    node * del = NULL, *cur = NULL;
-    if(lst->head->next == NULL){
-        del = lst->head;
-        lst->head = NULL;
-        remove_node(del);
-        return;
-    }
-    if(lst->head == nd){
-        lst->head = lst->head->next;
-        if(lst->head->next != NULL)
-            lst->head->next->prev = NULL;
-        remove_node(del);
-        return;
-    }
-
-    cur = lst->head;
-    while(cur->next!=NULL){
-        if(cur->next == nd)
-            break;
-        cur = cur->next;
-    }
-    
-    if(cur->next == NULL)
-        return;
-
-    if(cur->next->next!=NULL){
-        del = cur->next;
-        cur->next = del->next;
-        del->next->prev = cur;
-        remove_node(del);
-    }
-    else{
-        del = cur->next;
-        cur->next = NULL;
-        remove_node(del);
-    }
-}
-
-
-long count(list * lst){
-    if(lst->head == NULL)
-        return 0;
-
-    long res = 1;
-    node * cur = lst->head;
-    while(cur->next!=NULL){
-        res++;
-        cur = cur->next;
-    }
-    return res;
-}
-
-
-void add_after(list * lst, node * nd, void * data){
-    if(lst->head == NULL)
-        return;
-    node * tmp = create_node(data, NULL, NULL);
-    node * cur = lst->head;
-    if(lst->head == nd){
-        if(cur->next == NULL){
-            cur->next = tmp;
-            tmp->prev = NULL;
+void clear_list(list * lst)
+{
+    if(lst->__head != NULL)
+    {
+        node * cur = lst->__head, * cur2 = lst->__head->__next;
+        while(cur2!=NULL)
+        {
+            __remove_node(cur);
+            cur = cur2;
+            cur2 = cur2->__next;
         }
-        else{
-            tmp->prev = cur;
-            tmp->next = lst->head->next;
-            lst->head->next->prev = tmp;
-            cur->next = tmp;
-        }
-    } 
-        
-    while(cur->next != NULL){
-        if(cur->next == nd)
-            break;
-        cur = cur->next;
-    }
-    if(cur->next == NULL)
-        return;
 
-    if(cur->next->next!=NULL){
-        tmp->next = cur->next->next;
-        tmp->prev = cur->next;
-        cur->next->next = tmp;
-        cur->next->next->prev = tmp;
+        __remove_node(cur);
     }
-    else{
-        cur->next->next = tmp;
-        tmp->prev = cur->next->next;
-    }
+
+    lst->__head = NULL;
+    lst->__tail = NULL;
 }
 
+
+int empty_list(list * lst)
+{
+    return lst->__head == NULL;
+}
+
+
+int main()
+{
+    int a = 5, b = 6, c = 7, d = 4;
+    int *pa = &a, *pb = &b, *pc = &c, *pd = &d;
+    list * l = create_list();
+    push_back(l, (void *)pa);
+    push_back(l, (void *)pb);
+    push_back(l, (void*)pc);
+    push_front(l, (void*)pd);
+    pop_back(l);
+    pop_back(l);
+    pop_back(l);
+    pop_back(l);
+    printf("%d", count_list(l));
+    print_d(l);
+    printr_d(l);
+    printf("%d", empty_list(l));
+    remove_list(l);
+    return 0;
+}
 
 
 
